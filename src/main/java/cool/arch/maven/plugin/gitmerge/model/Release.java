@@ -4,18 +4,18 @@ import java.util.List;
 
 public class Release {
 	
-	private String target;
+	private String targetBranch;
 	
 	private MergeStrategy strategy;
 	
 	private List<Branch> branches;
 
-	public String getTarget() {
-		return target;
+	public String getTargetBranch() {
+		return targetBranch;
 	}
 
-	public void setTarget(String target) {
-		this.target = target;
+	public void setTargetBranch(String targetBranch) {
+		this.targetBranch = targetBranch;
 	}
 
 	public MergeStrategy getStrategy() {
