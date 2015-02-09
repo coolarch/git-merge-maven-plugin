@@ -1,4 +1,4 @@
-package cool.arch.maven.plugin.gitmerge;
+package cool.arch.maven.plugin.gitmerge.mojo;
 
 import java.io.File;
 import java.io.IOException;
