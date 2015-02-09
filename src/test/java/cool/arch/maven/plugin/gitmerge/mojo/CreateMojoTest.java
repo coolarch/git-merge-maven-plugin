@@ -46,6 +46,8 @@ public class CreateMojoTest {
 	 */
 	@Test
 	public final void testExecute() throws MojoExecutionException, MojoFailureException {
+		// TODO - Actually implement a test here
+		
 		specimen.execute();
 	}
 }
