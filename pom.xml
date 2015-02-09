@@ -22,6 +22,8 @@
 		<lib.maven-annotations.version>3.4</lib.maven-annotations.version>
 		<lib.jgit.version>3.6.2.201501210735-r</lib.jgit.version>
 		<lib.jackson2.version>2.5.1</lib.jackson2.version>
+		<lib.mockito.version>1.10.19</lib.mockito.version>
+		
 	</properties>
 	
 	<build>
@@ -177,6 +179,13 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${lib.jackson2.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${lib.mockito.version}</version>
+			<scope>test</scope>
 		</dependency>
 		
 	</dependencies>

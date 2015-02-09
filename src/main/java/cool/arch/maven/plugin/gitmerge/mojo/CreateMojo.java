@@ -135,4 +135,28 @@ public class CreateMojo extends AbstractMojo {
 	
 		return releases;
 	}
+
+	public File getBaseDirectory() {
+		return baseDirectory;
+	}
+
+	public void setBaseDirectory(File baseDirectory) {
+		this.baseDirectory = baseDirectory;
+	}
+
+	public File getReleasesJson() {
+		return releasesJson;
+	}
+
+	public void setReleasesJson(File releasesJson) {
+		this.releasesJson = releasesJson;
+	}
+
+	public MavenProject getProject() {
+		return project;
+	}
+
+	public void setProject(MavenProject project) {
+		this.project = project;
+	}
 }
