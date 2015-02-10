@@ -1,9 +1,11 @@
 package cool.arch.maven.plugin.gitmerge.mojo;
 
+import static cool.arch.maven.plugin.gitmerge.Constants.RELEASES_JSON;
+import static java.util.Objects.requireNonNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import static java.util.Objects.requireNonNull;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -23,11 +25,6 @@ import cool.arch.maven.plugin.gitmerge.model.Releases;
  */
 @Mojo(name="add", requiresOnline=true, requiresProject=true)
 public class AddMojo extends AbstractGitMergeMojo {
-
-	/**
-	 * Filename of the releases tracking file.
-	 */
-	private static final String RELEASES_JSON = "releases.json";
 
 	@Parameter(defaultValue="${targetBranch}")
 	private String targetBranch;

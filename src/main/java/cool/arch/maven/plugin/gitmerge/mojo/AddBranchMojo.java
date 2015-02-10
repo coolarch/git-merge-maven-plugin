@@ -15,17 +15,22 @@ import org.apache.maven.plugins.annotations.Parameter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import cool.arch.maven.plugin.gitmerge.model.Branch;
+import cool.arch.maven.plugin.gitmerge.model.MergeStrategy;
 import cool.arch.maven.plugin.gitmerge.model.Release;
 import cool.arch.maven.plugin.gitmerge.model.Releases;
 
 /**
  *
  */
-@Mojo(name="remove", requiresOnline=true, requiresProject=true)
-public class RemoveMojo extends AbstractGitMergeMojo {
+@Mojo(name="add-branch", requiresOnline=true, requiresProject=true)
+public class AddBranchMojo extends AbstractGitMergeMojo {
 
 	@Parameter(defaultValue="${targetBranch}")
 	private String targetBranch;
+
+  @Parameter(defaultValue="${mergeBranch}")
+  private String mergeBranch;
 
 	/**
 	 * File where the releases.json is located.
@@ -50,6 +55,10 @@ public class RemoveMojo extends AbstractGitMergeMojo {
       throw new MojoFailureException("Invalid target branch name.  Branch names must start with release/");
 		}
 
+    if (mergeBranch == null) {
+      throw new MojoFailureException("Invalid merge branch name.");
+    }
+
 		if (!releasesJsonExists()) {
 			throw new MojoFailureException("releases.json does not exist.  Please run git-merge:create to create the releases.json first");
 		}
@@ -60,8 +69,16 @@ public class RemoveMojo extends AbstractGitMergeMojo {
 		  releases.setReleases(new ArrayList<Release>());
 		}
 
+		if (!branchExists(targetBranch)) {
+		  throw new MojoFailureException(String.format("Target branch %s does not exists", targetBranch));
+		}
+
+    if (!branchExists(mergeBranch)) {
+      throw new MojoFailureException(String.format("Merge branch %s does not exists", mergeBranch));
+    }
+
 		if (!containsBranch(releases, targetBranch)) {
-      throw new MojoFailureException(String.format("Branch %s is not configured in releases.json", targetBranch));
+      throw new MojoFailureException(String.format("Branch %s not configured in releases.json", targetBranch));
 		}
 
 		Release foundRelease = null;
@@ -73,10 +90,34 @@ public class RemoveMojo extends AbstractGitMergeMojo {
 		  }
 		}
 
-		if (foundRelease != null) {
-	    releases.getReleases().remove(foundRelease);
-	    writeReleasesJson(releases);
+		if (foundRelease.getBranches() == null) {
+		  foundRelease.setBranches(new ArrayList<Branch>());
 		}
+
+		boolean foundBranch = false;
+
+		for (final Branch branch : foundRelease.getBranches()) {
+		  if (mergeBranch.equals(branch.getName())) {
+		    foundBranch = true;
+		    break;
+		  }
+		}
+
+		if (!foundBranch) {
+		  final Branch branch = new Branch();
+		  branch.setName(mergeBranch);
+		  branch.setDescription("");
+		  foundRelease.getBranches().add(branch);
+		}
+
+    final Release release = new Release();
+    release.setTargetBranch(targetBranch);
+    release.setStrategy(MergeStrategy.OCTOPUS);
+    release.setBranches(new ArrayList<Branch>());
+
+    releases.getReleases().add(release);
+
+		writeReleasesJson(releases);
 	}
 
 	private boolean releasesJsonExists() {
