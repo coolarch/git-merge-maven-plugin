@@ -23,7 +23,7 @@ public class MergeMojo extends AbstractGitMergeMojo {
 	private MavenProject project;
 
 	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
+	public void executeWork() throws MojoExecutionException, MojoFailureException {
 		final FileRepositoryBuilder builder = new FileRepositoryBuilder();
 
 		try {

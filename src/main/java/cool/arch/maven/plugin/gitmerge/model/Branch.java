@@ -1,25 +1,14 @@
 package cool.arch.maven.plugin.gitmerge.model;
 
 public class Branch {
-	
+
 	private String name;
-	
-	private String description;
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
 }

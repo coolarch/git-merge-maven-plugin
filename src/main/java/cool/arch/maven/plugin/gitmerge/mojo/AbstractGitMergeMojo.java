@@ -1,10 +1,14 @@
 package cool.arch.maven.plugin.gitmerge.mojo;
 
+import static cool.arch.maven.plugin.gitmerge.Constants.RELEASES_JSON;
+import static java.util.Objects.requireNonNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.project.MavenProject;
@@ -14,6 +18,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+
+import cool.arch.maven.plugin.gitmerge.dao.ReleasesDao;
+import cool.arch.maven.plugin.gitmerge.model.Release;
 
 public abstract class AbstractGitMergeMojo extends AbstractMojo {
 
@@ -33,11 +40,32 @@ public abstract class AbstractGitMergeMojo extends AbstractMojo {
   @Component
   private MavenProject project;
 
-  /**
-   * Discovers the Git repository directory to be used as the base directory of the project.
-   * @throws MojoFailureException If an error occurred while attempting to locate the Git repository directory
-   */
-  protected final void discoverRepoDirectory() throws MojoFailureException {
+  private ReleasesDao releasesDao;
+
+  @Override
+  public final void execute() throws MojoExecutionException, MojoFailureException {
+    discoverRepoDirectory();
+    validateRepoExists();
+
+    if (isChildProject()) {
+      return;
+    }
+
+    initReleasesDao();
+
+    if (getReleasesDao().releasesJsonExists()) {
+      try {
+        getReleasesDao().read();
+      }
+      catch (final IOException e) {
+        throw new MojoFailureException("Error reading releases.json file");
+      }
+    }
+  }
+
+  protected abstract void executeWork() throws MojoExecutionException, MojoFailureException;
+
+  private final void discoverRepoDirectory() throws MojoFailureException {
     Repository repository = null;
 
     try {
@@ -58,7 +86,18 @@ public abstract class AbstractGitMergeMojo extends AbstractMojo {
     }
   }
 
-  protected final boolean branchExists(final String branchName) throws MojoFailureException {
+  private void initReleasesDao() {
+    final File releasesJson = new File(getBaseDirectory(), RELEASES_JSON);
+    releasesDao = new ReleasesDao(releasesJson);
+  }
+
+  /**
+   * Determines whether a specific named branch exists.
+   * @param branchName Name of the branch for which to check
+   * @return Truth of whether the branch exists
+   * @throws MojoFailureException If an error occurred while checking for the branch
+   */
+  protected boolean branchExists(final String branchName) throws MojoFailureException {
     Repository repository = null;
 
     final String fullBranchName = "refs/remotes/origin/" + branchName;
@@ -91,11 +130,7 @@ public abstract class AbstractGitMergeMojo extends AbstractMojo {
     return branchExists;
   }
 
-  /**
-   * Verifies that the repository folder actual exists.
-   * @throws MojoFailureException
-   */
-  protected final void validateRepoExists() throws MojoFailureException {
+  private void validateRepoExists() throws MojoFailureException {
     if (baseDirectory == null || !baseDirectory.exists()) {
       getLog().error(NO_DOT_GIT_MESSAGE);
 
@@ -103,7 +138,7 @@ public abstract class AbstractGitMergeMojo extends AbstractMojo {
     }
   }
 
-  protected final boolean isChildProject() {
+  private boolean isChildProject() {
     boolean childProject = false;
 
     if (!getBaseDirectory().equals(getProject().getBasedir())) {
@@ -112,6 +147,21 @@ public abstract class AbstractGitMergeMojo extends AbstractMojo {
     }
 
     return childProject;
+  }
+
+  protected boolean releasesContainsBranch(final String targetBranch) {
+    requireNonNull(targetBranch, "targetBranch shall not be null");
+
+    boolean branchFound = false;
+
+    for (final Release release : getReleasesDao().getReleases().getReleases()) {
+      if (targetBranch.equals(release.getTargetBranch())) {
+        branchFound = true;
+        break;
+      }
+    }
+
+    return branchFound;
   }
 
   public final File getBaseDirectory() {
@@ -128,5 +178,9 @@ public abstract class AbstractGitMergeMojo extends AbstractMojo {
 
   public final void setProject(final MavenProject project) {
     this.project = project;
+  }
+
+  public ReleasesDao getReleasesDao() {
+    return releasesDao;
   }
 }
