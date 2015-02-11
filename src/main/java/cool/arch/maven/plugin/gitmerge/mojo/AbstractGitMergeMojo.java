@@ -61,6 +61,8 @@ public abstract class AbstractGitMergeMojo extends AbstractMojo {
         throw new MojoFailureException("Error reading releases.json file");
       }
     }
+
+    executeWork();
   }
 
   protected abstract void executeWork() throws MojoExecutionException, MojoFailureException;
